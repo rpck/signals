@@ -1,0 +1,9 @@
+Index 	Modulation
+0 	BPSK
+1 	QPSK
+2 	QAM16
+3 	QAM64
+4 	VT
+
+10M items each, divided into 512 sections each
+32 bits real, 32 bits imaginary per unit
