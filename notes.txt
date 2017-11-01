@@ -7,3 +7,8 @@ Index 	Modulation
 
 10M items each, divided into 512 sections each
 32 bits real, 32 bits imaginary per unit
+
+--Revision
+
+Change size to 8M datasets for each modulation_scheme.
+Want to reshape to 512 x 2 arrays (512 real, 512 imaginary)
