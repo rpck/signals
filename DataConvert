@@ -1,0 +1,5 @@
+BPSK = read_complex_binary('BPSK_SNR_20');
+QPSK = read_complex_binary('QPSK_SNR_20');
+QAM16 = read_complex_binary('QAM16_SNR_20');
+QAM64 = read_complex_binary('QAM64_SNR_20');
+VT = read_complex_binary('VT_SNR_20');
