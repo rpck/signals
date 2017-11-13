@@ -25,7 +25,7 @@ def label_to_int(label):
         return 3
     elif label == 'VT':
         return 4
-    return 0
+    return 5
 
 def load_dataset(dataset_dir):
     # Our classifications
@@ -38,6 +38,7 @@ def load_dataset(dataset_dir):
         real = None
         imag = None
         label = f[:-4]
+        print(label)
         infile = open(os.path.join(dataset_dir, f))
         for line in infile:
             real = np.fromstring(line, dtype=float, sep=',')
@@ -52,6 +53,7 @@ def load_dataset(dataset_dir):
                 labels.append(label_int)
             i += 1
     np_dataset = np.array(dataset)
+    print(np_dataset.shape)
     np_labels = np.array(labels)
     # Shuffle the dataset and labels with the same permutation
     perm = np.random.permutation(np_dataset.shape[0])
@@ -59,34 +61,44 @@ def load_dataset(dataset_dir):
     shuffled_labels = np_labels[perm]
     return (shuffled_dataset, shuffled_labels), (np.array(test), np.array(test_labels))
 
-train_set, test_set = load_dataset('dataset')
-print(train_set[1])
+loaded_train_set, loaded_test_set = load_dataset('dataset')
+input_shape = (1, 2, 512)
+train_dataset = ()
+test_dataset = ()
 
-train_dataset = train_set[0].reshape(len(train_set[0]), 1, 512, 2)
-test_dataset = test_set[0].reshape(len(test_set[0]), 1, 512, 2)
-input_shape = (1, 512, 2)
-train_labels = np_utils.to_categorical(train_set[1], num_categories)
-test_labels = np_utils.to_categorical(test_set[1], num_categories)
+if K.image_data_format() == 'channels_first':
+    train_dataset = loaded_train_set[0].reshape(len(loaded_train_set[0]), 1, 2, 512)
+    test_dataset = loaded_test_set[0].reshape(len(loaded_test_set[0]), 1, 2, 512)
+    input_shape = (1, 2, 512)
+else:
+    train_dataset = loaded_train_set[0].reshape(len(loaded_train_set[0]), 2, 512, 1)
+    test_dataset = loaded_test_set[0].reshape(len(loaded_test_set[0]), 2, 512, 1)
+    input_shape = (2, 512, 1)
+
+train_labels = np_utils.to_categorical(loaded_train_set[1], num_categories)
+test_labels = np_utils.to_categorical(loaded_test_set[1], num_categories)
+
+print(train_labels)
 
 # Use tanh instead of ReLU to prevent NaN errors
 model = Sequential()
-model.add(Conv2D(16,
-        kernel_size=(6, 2),
-        activation='tanh',
+model.add(Conv2D(4,
+        #kernel_size=(2, 8),
+        activation='relu',
         padding='same',
         input_shape=input_shape))
-model.add(MaxPooling2D(pool_size=(2, 2),
+model.add(MaxPooling2D(pool_size=(2, 4),
         strides=1,
         padding='same',
         data_format=None))
 model.add(Dropout(0.25))
-model.add(Conv2D(16,
-        kernel_size=(7, 2),
-        activation='tanh',
+model.add(Conv2D(4,
+        #kernel_size=(2, 8),
+        activation='relu',
         padding='same'))
-model.add(MaxPooling2D(pool_size=(2, 2),
-        strides=1,
-        padding='same',
+model.add(MaxPooling2D(pool_size=(2, 4),
+        #strides=1,
+        #padding='same',
         data_format=None))
 model.add(Flatten())
 
@@ -96,19 +108,24 @@ model.add(Dense(num_categories, activation='softmax'))
 model.summary()
 
 # Use a Stochastic-Gradient-Descent as a learning optimizer
-sgd = SGD(lr=5, decay=1e-6, momentum=0.9, nesterov=True)
+sgd = SGD(lr=1000, decay=1e-8, momentum=0.9, nesterov=True)
 
 # Prevent kernel biases from being exactly 0 and giving nan errors
 def constrainedCrossEntropy(ytrue, ypred):
-    ypred = K.clip(ypred, 1e-7, 1e7)
+    #ypred = K.clip(ypred, 1e-7, 1e7)
     return losses.categorical_crossentropy(ytrue, ypred)
 
+model.compile(loss='categorical_crossentropy',
+            optimizer='adam',
+            metrics=['accuracy'])
+'''
 model.compile(loss=constrainedCrossEntropy,
             optimizer=sgd,
             metrics=['accuracy'])
-
+'''
 model.fit(train_dataset, train_labels,
             batch_size=batch_size,
             epochs=epochs,
             verbose=1,
             validation_data=(test_dataset, test_labels))
+
