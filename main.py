@@ -82,29 +82,16 @@ print(train_labels)
 
 # Use tanh instead of ReLU to prevent NaN errors
 model = Sequential()
-model.add(Conv2D(4,
-        #kernel_size=(2, 8),
-        activation='relu',
-        padding='same',
-        input_shape=input_shape))
-model.add(MaxPooling2D(pool_size=(2, 4),
-        strides=1,
-        padding='same',
-        data_format=None))
+model.add(Conv2D(16, 1, 1, activation='relu', input_shape=input_shape))
+model.add(Conv2D(16, 1, 1, activation='relu'))
+model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
-model.add(Conv2D(4,
-        #kernel_size=(2, 8),
-        activation='relu',
-        padding='same'))
-model.add(MaxPooling2D(pool_size=(2, 4),
-        #strides=1,
-        #padding='same',
-        data_format=None))
+ 
 model.add(Flatten())
-
-#"Squash" to probabilities
-model.add(Dense(num_categories, activation='softmax'))
-
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(5, activation='softmax'))
+ 
 model.summary()
 
 # Use a Stochastic-Gradient-Descent as a learning optimizer
