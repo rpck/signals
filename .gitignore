@@ -102,3 +102,4 @@ ENV/
 
 # ignore the dataset folder
 dataset/
+datafiles/
