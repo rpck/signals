@@ -12,3 +12,24 @@ Index 	Modulation
 
 Change size to 8M datasets for each modulation_scheme.
 Want to reshape to 512 x 2 arrays (512 real, 512 imaginary)
+
+--Newest
+Current setup:
+One input would contain 512 datapoints, consisting of real and imaginary values.
+
+	1	2	...	512
+1	real 	real  	real   	real
+2   	imag	imag	imag	imag
+...
+8M/512-1 real	real 	real	real	
+8M/512	imag	imag	imag	imag
+
+There are 8M 'datapoints' in each file, for a total of 8M*5 = 40M datapoints. Each 'input' consists of 512 datapoints, so there are 40M/512 = 78125 samples. There is a split of 60%/20%/20% for training/validating/testing, so 0.6*78125 = 46,875 for testing, 0.2*78125 = 15,625 for validating and testing each.
+
+For Visualization Team:
+    Try to train networks 5 times, with one modulation scheme not trained each to see what is being activated/visualized.
+
+For Training Team:
+    Try to train (in one network at a time) data with different SNR (0, 5, 10, 15, 20) mixed in to test the network.
+    Could create 5 GNURadio dat files for each modulation scheme (5 * 5 = 25 files) then use Convert data and compact each SNR type for each modulation scheme to one file (25 / 5  = 5 files). 
+     Each modulation scheme will have 2M * 5 = 10M (for each SNR) datapoints.
