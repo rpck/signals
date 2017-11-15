@@ -103,3 +103,5 @@ ENV/
 # ignore the dataset folder
 dataset/
 datafiles/
+new_datafiles/
+new_dataset/
