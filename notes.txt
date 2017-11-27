@@ -35,3 +35,5 @@ For Training Team:
      Each modulation scheme will have 2M * 5 = 10M (for each SNR) datapoints.
 
 Kenny brought up shuffling data before putting in training/validation/testing. Could put all data into temp array, shuffle that, then mod again.
+
+Main_test and test_dataset were just to test SNR of 0 only, achieveing ~40% at best which is good since that means are network is not necessarily overfitting.
