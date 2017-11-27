@@ -86,7 +86,7 @@ def load_dataset(dataset_dir):
 
     return (new_train_set, new_train_labels), (new_valid_set, new_valid_labels), (new_test_set, new_test_labels)
 
-loaded_train_set, loaded_valid_set, loaded_test_set = load_dataset('new_dataset')
+loaded_train_set, loaded_valid_set, loaded_test_set = load_dataset('test_dataset')
 input_shape = (1, 2, 500)
 train_dataset = ()
 valid_dataset = ()
@@ -139,10 +139,10 @@ print('Test accuracy:', score[1])
 #Saves the model
 #Serialize model to JSON
 model_json = model.to_json()
-with open("VT.json", "w") as json_file:
+with open("model.json", "w") as json_file:
     json_file.write(model_json)
 #Serialize weights to HDF5
-model.save_weights("VT.h5")
+model.save_weights("model.h5")
 print("Saved model to disk")
 
 

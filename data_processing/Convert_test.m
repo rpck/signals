@@ -17,7 +17,9 @@ for i = 1:m
     output = zeros(2000000 * 5 / sections, sections);
 
     for j = 1:n 
-      disp(list(j, i))
+      var = regexprep(list(j, i).name, '\w+_', '');
+      if (strcmp(var, '0.dat') ~= 0)
+
       mod = read_complex_binary(strcat(directory, list(j, i).name));
 
         real_data = transpose(real(mod));
@@ -32,6 +34,7 @@ for i = 1:m
             currRow = currRow + 2;
             num = num + sections;
         end
+      end
     end
     csvwrite(strcat(newdir, strrep(regexprep(list(1, i).name, '_(\d+)', ''), '.dat', '.csv')), output);
 end
