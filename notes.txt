@@ -33,3 +33,5 @@ For Training Team:
     Try to train (in one network at a time) data with different SNR (0, 5, 10, 15, 20) mixed in to test the network.
     Could create 5 GNURadio dat files for each modulation scheme (5 * 5 = 25 files) then use Convert data and compact each SNR type for each modulation scheme to one file (25 / 5  = 5 files). 
      Each modulation scheme will have 2M * 5 = 10M (for each SNR) datapoints.
+
+Kenny brought up shuffling data before putting in training/validation/testing. Could put all data into temp array, shuffle that, then mod again.
