@@ -123,8 +123,8 @@ print('Test accuracy:', score[1])
 #Saves the model
 #Serialize model to JSON
 model_json = model.to_json()
-with open("VT.json", "w") as json_file:
+with open("Test3.json", "w") as json_file:
     json_file.write(model_json)
 #Serialize weights to HDF5
-model.save_weights("VT.h5")
+model.save_weights("Test3.h5")
 print("Saved model to disk")
