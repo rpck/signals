@@ -30,61 +30,45 @@ def label_to_int(label):
 #Training/Validation/Testing split, ~ 60/20/20
 def load_dataset(dataset_dir):
     # Our classifications
-    training_set = []
-    training_labels = []
+    main_set = []
+    main_labels = []
 
-    validation_set = []
-    validation_labels = []
-
-    testing_set = []
-    testing_labels = []
-    i = 0
     for f in os.listdir(dataset_dir):
         real = None
         imag = None
         label = f[:-4]
         print(label)
         infile = open(os.path.join(dataset_dir, f))
+
         for line in infile:
             real = np.fromstring(line, dtype=float, sep=',')
             imag = np.fromstring(next(infile), dtype=float, sep=',')
             data = np.stack((real, imag))
             label_int = label_to_int(label)
-            if i % 5 == 0 or i % 5 == 1 or i % 5 == 2:
-                training_set.append(data)
-                training_labels.append(label_int)
-            elif i % 5 == 3:
-                validation_set.append(data)
-                validation_labels.append(label_int)
-            elif i % 5 == 4:
-                testing_set.append(data)
-                testing_labels.append(label_int)
-            i += 1
+            main_set.append(data)
+            main_labels.append(label_int)
 
-    training_set = np.array(training_set)
+    main_set = np.array(main_set)
+    main_labels = np.array(main_labels)
+    main_perm = np.random.permutation(main_set.shape[0])
 
-    validation_set = np.array(validation_set)
-    testing_set = np.array(testing_set)
+    new_main_set = main_set[main_perm]
+    new_main_labels = main_labels[main_perm]
 
-    training_labels = np.array(training_labels)
-    validation_labels = np.array(validation_labels)
-    testing_labels = np.array(testing_labels)
+    size = len(new_main_set)
+    training = int(0.60 * size)
+    validating = int(0.20 * size)
+    testing = int(0.20 * size)
 
-    # Shuffle the dataset and labels with the same permutation
-    train_perm = np.random.permutation(training_set.shape[0])
-    valid_perm = np.random.permutation(validation_set.shape[0])
-    test_perm = np.random.permutation(testing_set.shape[0])
+    training_set = new_main_set[:training]
+    validation_set = new_main_set[training:training + validating]
+    testing_set = new_main_set[training + validating:training + validating + testing]
 
-    new_train_set = training_set[train_perm]
-    new_train_labels = training_labels[train_perm]
+    training_labels = new_main_labels[:training]
+    validation_labels = new_main_labels[training:training + validating]
+    testing_labels = new_main_labels[training + validating:training + validating + testing]
 
-    new_valid_set = validation_set[valid_perm]
-    new_valid_labels = validation_labels[valid_perm]
-
-    new_test_set = testing_set[test_perm]
-    new_test_labels = testing_labels[test_perm]
-
-    return (new_train_set, new_train_labels), (new_valid_set, new_valid_labels), (new_test_set, new_test_labels)
+    return (training_set, training_labels), (validation_set, validation_labels), (testing_set, testing_labels)
 
 loaded_train_set, loaded_valid_set, loaded_test_set = load_dataset('new_dataset')
 input_shape = (1, 2, 500)
@@ -113,12 +97,12 @@ model.add(Conv2D(16, (1, 1), activation='relu', input_shape=input_shape))
 model.add(Conv2D(16, (1, 1), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
- 
+
 model.add(Flatten())
 model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.25))
 model.add(Dense(5, activation='softmax'))
- 
+
 model.summary()
 
 model.compile(loss='categorical_crossentropy',
@@ -139,10 +123,8 @@ print('Test accuracy:', score[1])
 #Saves the model
 #Serialize model to JSON
 model_json = model.to_json()
-with open("VT.json", "w") as json_file:
+with open("Test3.json", "w") as json_file:
     json_file.write(model_json)
 #Serialize weights to HDF5
-model.save_weights("VT.h5")
+model.save_weights("Test3.h5")
 print("Saved model to disk")
-
-
