@@ -44,7 +44,7 @@ def load_dataset(dataset_dir):
         infile = open(os.path.join(dataset_dir, f))
 
         # only load QAM64 and QPSK
-        if label != 'QAM64' and label != 'QPSK':
+        if label == 'VT':
             continue
 
         for line in infile:
@@ -137,8 +137,8 @@ print('Test accuracy:', score[1])
 # Serialize model to JSON
 model_json = model.to_json()
 
-with open("QAM64_QPSK.json", "w") as json_file:
+with open("BPSK_QAM16_QAM64_QPSK.json", "w") as json_file:
     json_file.write(model_json)
 #Serialize weights to HDF5
-model.save_weights("QAM64_QPSK.h5")
+model.save_weights("BPSK_QAM16_QAM64_QPSK.h5")
 print("Saved model to disk")
