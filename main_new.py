@@ -93,8 +93,8 @@ test_labels = np_utils.to_categorical(loaded_test_set[1], num_categories)
 
 # Use tanh instead of ReLU to prevent NaN errors
 model = Sequential()
-model.add(Conv2D(16, (1, 1), activation='relu', input_shape=input_shape))
-model.add(Conv2D(16, (1, 1), activation='relu'))
+model.add(Conv2D(8, (1, 1), activation='relu', input_shape=input_shape))
+model.add(Conv2D(8, (1, 1), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
 
@@ -123,8 +123,8 @@ print('Test accuracy:', score[1])
 #Saves the model
 #Serialize model to JSON
 model_json = model.to_json()
-with open("Test3.json", "w") as json_file:
+with open("Conv8.json", "w") as json_file:
     json_file.write(model_json)
 #Serialize weights to HDF5
-model.save_weights("Test3.h5")
+model.save_weights("Conv8.h5")
 print("Saved model to disk")
