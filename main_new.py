@@ -43,6 +43,10 @@ def load_dataset(dataset_dir):
         print(label)
         infile = open(os.path.join(dataset_dir, f))
 
+        # only load QAM64 and QPSK
+        #if label != 'QAM64' and label != 'QPSK':
+        #   continue
+
         for line in infile:
             real = np.fromstring(line, dtype=np.float64, sep=',')
             imag = np.fromstring(next(infile), dtype=np.float64, sep=',')
@@ -99,12 +103,11 @@ test_labels = np_utils.to_categorical(loaded_test_set[1], num_categories)
 
 # Define a Keras Sequential model
 model = Sequential()
-
-# Add layers to the model
-model.add(Conv2D(16, (1, 1), activation='relu', input_shape=input_shape))
-model.add(Conv2D(16, (1, 1), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Conv2D(8, (1, 1), activation='relu', input_shape=input_shape))
+model.add(Conv2D(8, (1, 1), activation='relu'))
+model.add(MaxPooling2D(pool_size=(1, 1)))
 model.add(Dropout(0.25))
+
 model.add(Flatten())
 model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.25))
@@ -133,8 +136,9 @@ print('Test accuracy:', score[1])
 # Saves the model
 # Serialize model to JSON
 model_json = model.to_json()
-with open("model.json", "w") as json_file:
+
+with open("BPSK_QAM16_QAM64_QPSK.json", "w") as json_file:
     json_file.write(model_json)
 #Serialize weights to HDF5
-model.save_weights("model.h5")
+model.save_weights("BPSK_QAM16_QAM64_QPSK.h5")
 print("Saved model to disk")
