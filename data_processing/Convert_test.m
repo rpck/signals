@@ -1,5 +1,5 @@
 directory = '../new_datafiles/';
-newdir = '../test_dataset/';
+newdir = '../small_dataset/';
 
 BPSK = dir(strcat(directory, 'BPSK*.dat'));
 QPSK = dir(strcat(directory, 'QPSK*.dat'));
@@ -8,24 +8,24 @@ QAM64 = dir(strcat(directory, 'QAM64*.dat'));
 VT = dir(strcat(directory, 'VT*.dat'));
 
 list = [BPSK QPSK QAM16 QAM64 VT];
+num_points = 2500;
 sections = 500;
 
 [m, n] = size(list);
+
 for i = 1:m
     disp(strcat('Converting: ', regexprep(list(1, i).name, '_(\d+)', '')));
     currRow = 1;
-    output = zeros(2000000 * 5 / sections, sections);
+    output = zeros(num_points * m / sections, sections);
 
     for j = 1:n 
-      var = regexprep(list(j, i).name, '\w+_', '');
-      if (strcmp(var, '0.dat') ~= 0)
-
+      disp(list(j, i))
       mod = read_complex_binary(strcat(directory, list(j, i).name));
 
         real_data = transpose(real(mod));
         imag_data = transpose(imag(mod));
         num = 1;
-        for k = 1:(length(mod) / sections)
+        for k = 1:(num_points / sections)
             real_section = real_data(num:num + sections - 1);
             imag_section = imag_data(num:num + sections - 1);
 
@@ -34,7 +34,6 @@ for i = 1:m
             currRow = currRow + 2;
             num = num + sections;
         end
-      end
     end
     csvwrite(strcat(newdir, strrep(regexprep(list(1, i).name, '_(\d+)', ''), '.dat', '.csv')), output);
 end

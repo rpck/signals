@@ -10,10 +10,13 @@ from keras.utils import np_utils
 from keras import backend as K
 import re
 
+rows = 2
+pts_per_sample = 500
 num_categories = 5
 batch_size = 64
 epochs = 5
 
+# Labels for our classifications
 def label_to_int(label):
     if label == 'BPSK':
         return 0
@@ -40,9 +43,13 @@ def load_dataset(dataset_dir):
         print(label)
         infile = open(os.path.join(dataset_dir, f))
 
+        # only load QAM64 and QPSK
+        if label != 'QAM64' and label != 'QPSK':
+            continue
+
         for line in infile:
-            real = np.fromstring(line, dtype=float, sep=',')
-            imag = np.fromstring(next(infile), dtype=float, sep=',')
+            real = np.fromstring(line, dtype=np.float64, sep=',')
+            imag = np.fromstring(next(infile), dtype=np.float64, sep=',')
             data = np.stack((real, imag))
             label_int = label_to_int(label)
             main_set.append(data)
@@ -70,32 +77,35 @@ def load_dataset(dataset_dir):
 
     return (training_set, training_labels), (validation_set, validation_labels), (testing_set, testing_labels)
 
+# Loads the dataset and scrambles it into 3 separate sets
 loaded_train_set, loaded_valid_set, loaded_test_set = load_dataset('new_dataset')
-input_shape = (1, 2, 500)
+input_shape = (1, rows, pts_per_sample)
+
 train_dataset = ()
 valid_dataset = ()
 test_dataset = ()
 
+# 1 channel
 if K.image_data_format() == 'channels_first':
-    train_dataset = loaded_train_set[0].reshape(len(loaded_train_set[0]), 1, 2, 500)
-    valid_dataset = loaded_valid_set[0].reshape(len(loaded_valid_set[0]), 1, 2, 500)
-    test_dataset = loaded_test_set[0].reshape(len(loaded_test_set[0]), 1, 2, 500)
-    input_shape = (1, 2, 500)
+    train_dataset = loaded_train_set[0].reshape(len(loaded_train_set[0]), 1, rows, pts_per_sample)
+    valid_dataset = loaded_valid_set[0].reshape(len(loaded_valid_set[0]), 1, rows, pts_per_sample)
+    test_dataset = loaded_test_set[0].reshape(len(loaded_test_set[0]), 1, rows, pts_per_sample)
+    input_shape = (1, rows, pts_per_sample)
 else:
-    train_dataset = loaded_train_set[0].reshape(len(loaded_train_set[0]), 2, 500, 1)
-    valid_dataset = loaded_valid_set[0].reshape(len(loaded_valid_set[0]), 2, 500, 1)
-    test_dataset = loaded_test_set[0].reshape(len(loaded_test_set[0]), 2, 500, 1)
-    input_shape = (2, 500, 1)
+    train_dataset = loaded_train_set[0].reshape(len(loaded_train_set[0]), rows, pts_per_sample, 1)
+    valid_dataset = loaded_valid_set[0].reshape(len(loaded_valid_set[0]), rows, pts_per_sample, 1)
+    test_dataset = loaded_test_set[0].reshape(len(loaded_test_set[0]), rows, pts_per_sample, 1)
+    input_shape = (rows, pts_per_sample, 1)
 
 train_labels = np_utils.to_categorical(loaded_train_set[1], num_categories)
 valid_labels = np_utils.to_categorical(loaded_valid_set[1], num_categories)
 test_labels = np_utils.to_categorical(loaded_test_set[1], num_categories)
 
-# Use tanh instead of ReLU to prevent NaN errors
+# Define a Keras Sequential model
 model = Sequential()
 model.add(Conv2D(8, (1, 1), activation='relu', input_shape=input_shape))
 model.add(Conv2D(8, (1, 1), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(MaxPooling2D(pool_size=(1, 1)))
 model.add(Dropout(0.25))
 
 model.add(Flatten())
@@ -103,12 +113,15 @@ model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.25))
 model.add(Dense(5, activation='softmax'))
 
+# Report the structure of the network
 model.summary()
 
+# Create the model
 model.compile(loss='categorical_crossentropy',
             optimizer='adam',
             metrics=['accuracy'])
 
+# Fit the data and validate/test
 model.fit(train_dataset, train_labels,
             batch_size=batch_size,
             epochs=epochs,
@@ -120,11 +133,12 @@ score = model.evaluate(test_dataset, test_labels, batch_size=batch_size, verbose
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
 
-#Saves the model
-#Serialize model to JSON
+# Saves the model
+# Serialize model to JSON
 model_json = model.to_json()
-with open("Conv8.json", "w") as json_file:
+
+with open("QAM64_QPSK.json", "w") as json_file:
     json_file.write(model_json)
 #Serialize weights to HDF5
-model.save_weights("Conv8.h5")
+model.save_weights("QAM64_QPSK.h5")
 print("Saved model to disk")
