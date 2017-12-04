@@ -44,8 +44,8 @@ def load_dataset(dataset_dir):
         infile = open(os.path.join(dataset_dir, f))
 
         # only load QAM64 and QPSK
-        if label == 'VT':
-            continue
+        #if label != 'QAM64' and label != 'QPSK':
+        #   continue
 
         for line in infile:
             real = np.fromstring(line, dtype=np.float64, sep=',')
