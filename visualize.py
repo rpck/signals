@@ -8,6 +8,7 @@ import os
 
 num_categories = 5
 
+# Copy-pasted from the main.py script
 def label_to_int(label):
     if label == 'BPSK':
         return 0
@@ -21,6 +22,7 @@ def label_to_int(label):
         return 4
     return 5
 
+# This is copy-pasted from the main.py script
 def load_dataset(dataset_dir):
     # Our classifications
     main_set = []
@@ -63,12 +65,16 @@ def load_dataset(dataset_dir):
 
     return (training_set, training_labels), (validation_set, validation_labels), (testing_set, testing_labels)
 
+# Stolen from Lauren :) gets the outputs of a specified layer
+# for a given input.
 def get_layer_outputs(model, layer_number, test_data):
     outputs = model.layers[layer_number].output
     func = K.function([model.input] + [K.learning_phase()], [outputs])
     layer_out = func([test_data, 1.])
     return layer_out
 
+# Actually plots out a given layer. Model is a Keras model, layer_number is the
+# layer you want to visualize,
 def plot_layer_outputs(model, layer_number, test_data, test_labels):
     # 1 corresponds to the first layer
     figures = 0
@@ -97,7 +103,7 @@ def plot_layer_outputs(model, layer_number, test_data, test_labels):
                 if type(y) is np.float32:
                     y = layer_out[0]
                     x = np.arange(layer_out.shape[1])
-                    plt.plot(x, y, 'go')                    
+                    plt.plot(x, y, 'go')
                     plt.ylim(ymax=1.1, ymin=-0.1)
                     plt.xlim(xmax=4.1, xmin=-0.1)
                     fig.show()
@@ -107,15 +113,19 @@ def plot_layer_outputs(model, layer_number, test_data, test_labels):
                     plt.plot(x, y, 'g')
                     plt.ylim(ymax=0.4, ymin=0)
             fig.show()
-            
+
         # Show all figures for this layer
         plt.show()
 
+#########################
+# MAIN CODE STARTS HERE #
+#########################
 with open('BPSK_QAM16_QPSK.json') as json_data:
     model_json = json.load(json_data)
 model = model_from_json(json.dumps(model_json))
 model.load_weights('BPSK_QAM16_QPSK.h5')
 
+# We load from a small_dataset to reduce the load times
 loaded_train_set, loaded_valid_set, loaded_test_set = load_dataset('small_dataset')
 
 train_dataset = ()

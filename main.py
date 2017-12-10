@@ -10,13 +10,16 @@ from keras.utils import np_utils
 from keras import backend as K
 import re
 
+# Some constants to define our data
 rows = 2
 pts_per_sample = 500
 num_categories = 5
 batch_size = 64
 epochs = 5
+model_name = 'model_name'
 
-# Labels for our classifications
+# Labels for our classifications, looking back we could have just
+# used a dictionary.
 def label_to_int(label):
     if label == 'BPSK':
         return 0
@@ -32,33 +35,47 @@ def label_to_int(label):
 
 #Training/Validation/Testing split, ~ 60/20/20
 def load_dataset(dataset_dir):
-    # Our classifications
+    # We load everything into one big "main set," shuffle this
+    # set, and then allocate 60% to a training set, 20% to a
+    # validation set, and 20% to a test set.
     main_set = []
     main_labels = []
-
+    # Searches the specified dataset directory
     for f in os.listdir(dataset_dir):
+        # Our signals have a real and imaginary component
         real = None
         imag = None
         label = f[:-4]
-        print(label)
+        print('Loading', label)
         infile = open(os.path.join(dataset_dir, f))
 
-        # only load QAM64 and QPSK
+        # This is the piece of code that defined what data the
+        # network was actually trained on.
+        # Uncomment to only load QAM64 and QPSK
         #if label != 'QAM64' and label != 'QPSK':
         #   continue
 
+        # Iterate through a data file. The setup assumes one signal
+        # is stored in two lines- the first line holds the real data,
+        # and the second line holds imaginary data. The lines are 500
+        # CSV's. One input file may have many such pairs.
         for line in infile:
             real = np.fromstring(line, dtype=np.float64, sep=',')
             imag = np.fromstring(next(infile), dtype=np.float64, sep=',')
             data = np.stack((real, imag))
             label_int = label_to_int(label)
+            # Load the data and append to the main set
             main_set.append(data)
             main_labels.append(label_int)
 
+    # Uses numpy to shuffle the set and labels. We create a permutation
+    # So that the corresponding labels for each signal sample is preserved.
     main_set = np.array(main_set)
     main_labels = np.array(main_labels)
     main_perm = np.random.permutation(main_set.shape[0])
 
+    # The new shuffled set after applying the SAME PERMUTATION on both the
+    # data and its labels.
     new_main_set = main_set[main_perm]
     new_main_labels = main_labels[main_perm]
 
@@ -67,6 +84,7 @@ def load_dataset(dataset_dir):
     validating = int(0.20 * size)
     testing = int(0.20 * size)
 
+    # Split into different sets.
     training_set = new_main_set[:training]
     validation_set = new_main_set[training:training + validating]
     testing_set = new_main_set[training + validating:training + validating + testing]
@@ -75,6 +93,7 @@ def load_dataset(dataset_dir):
     validation_labels = new_main_labels[training:training + validating]
     testing_labels = new_main_labels[training + validating:training + validating + testing]
 
+    # Return as a tuple
     return (training_set, training_labels), (validation_set, validation_labels), (testing_set, testing_labels)
 
 # Loads the dataset and scrambles it into 3 separate sets
@@ -108,6 +127,7 @@ model.add(Conv2D(8, (1, 1), activation='relu'))
 model.add(MaxPooling2D(pool_size=(1, 1)))
 model.add(Dropout(0.25))
 
+# Classifier stage
 model.add(Flatten())
 model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.25))
@@ -130,6 +150,7 @@ model.fit(train_dataset, train_labels,
 
 score = model.evaluate(test_dataset, test_labels, batch_size=batch_size, verbose=0)
 
+# Print out the performance
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
 
@@ -137,8 +158,9 @@ print('Test accuracy:', score[1])
 # Serialize model to JSON
 model_json = model.to_json()
 
-with open("BPSK_QAM16_QAM64_QPSK.json", "w") as json_file:
+with open("{0}.json".format(model_name), "w") as json_file:
     json_file.write(model_json)
-#Serialize weights to HDF5
-model.save_weights("BPSK_QAM16_QAM64_QPSK.h5")
+    
+# Serialize weights to HDF5
+model.save_weights("{0}.h5".format(model_name))
 print("Saved model to disk")
